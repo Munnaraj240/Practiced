@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+		<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6521c47c-ef02-4195-a113-41cd1d20a8b4" basePath="${http.basePath}" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="48d96eb5-55e0-432e-ac0c-950ef78828f5" >
+		<salesforce:cached-basic-connection username="${salesforce.username}" password="${salesforce.password}" securityToken="${salesforce.securityToken}" />
+	</salesforce:sfdc-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="a4309ebe-d87e-41e7-8698-b6b779acba85" file="mule-app.yaml" />
+	<flow name="sdfc-demo-projectFlow" doc:id="ae33e8d2-0317-454b-821f-5dd3f0e325d2" >
+		<http:listener doc:name="Listener" doc:id="e57c9da7-4e92-4323-b1bb-5afa2293f956" config-ref="HTTP_Listener_config" path="${http.path}" allowedMethods="POST"/>
+		<ee:transform doc:name="mapping-Account-object" doc:id="11eea282-741e-4533-b441-db487a283160" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map(item,index) ->
+{
+	Name:item.name,
+	BillingStreet:item.billingAddress,
+	BillingCity:item.billingCity,
+	BillingState:item.billingState,
+	BillingCountry:item.billingCountry,
+	BillingPostalCode:item.billingPostalCode
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<salesforce:create type="Account" doc:name="inserting-record-in-Accounts-object" doc:id="50ef80f3-5f21-40d7-940d-7f3bf6af216e" config-ref="Salesforce_Config" />
+		<ee:transform doc:name="Response-payload-from-Accountobject" doc:id="810a4441-d5aa-442f-aa66-521a2a7307d6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Exit Log" doc:id="d371a0fb-0d14-42fd-94be-0c148d884737" message="-------------------- flow is sucessfully excuted -------"/>
+	</flow>
+</mule>

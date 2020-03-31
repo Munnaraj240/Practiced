@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<flow name="Quering-Accounts-object-from-sdfcFlow" doc:id="685ce56e-ded7-4099-84ba-c7223222f13b" >
+		<http:listener doc:name="Listener" doc:id="c2b9e8a5-8ad9-4fe0-a924-d6d2f9e7d58f" config-ref="HTTP_Listener_config" path="${http.path}"/>
+		<set-variable value="#[attributes.queryParams.billingCity default '']" doc:name="Set Variable" doc:id="0f20da38-3ba9-4eb9-abb4-2b7dd280011c" variableName="billingCityVar"/>
+		<choice doc:name="Choice" doc:id="2f6dc995-d302-4f41-847c-70242e756d1c" >
+			<when expression="#[vars.billingCityVar != '']">
+				<salesforce:query-all doc:name="Query all" doc:id="c152ac4d-f68d-4938-9887-292f558ad4ac" config-ref="Salesforce_Config">
+					<salesforce:salesforce-query >select Name,BillingCountry,BillingState,BillingPostalCode,BillingCity,BillingStreet from Account where BillingCity=':BillingCity'</salesforce:salesforce-query>
+					<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	BillingCity : vars.billingCityVar
+}]]]></salesforce:parameters>
+				</salesforce:query-all>
+			</when>
+			<otherwise >
+				<salesforce:query-all doc:name="Query all" doc:id="9a65ce53-f36b-4ca3-9797-b4a11e1eb0fa" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query>select Name,BillingCountry,BillingState,BillingPostalCode,BillingCity,BillingStreet from Account</salesforce:salesforce-query>
+		</salesforce:query-all>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="payload of salesforce-object" doc:id="10d8b836-132f-4cd6-b442-b71ea5b5300a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="end-of-the-flow-log" doc:id="c8e4cec5-7eb0-4632-aa95-ed8b675d9701" message="-------------- querying data from the salesforce account has been completed   ---------------------"/>
+	</flow>
+</mule>

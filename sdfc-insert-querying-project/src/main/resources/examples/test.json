@@ -1,0 +1,17 @@
+[{
+"name":"munna",
+"billingAddress":"Madhapur",
+"billingCity":"Hyderabad",
+"billingCountry":"India",
+"billingPostalCode":"500034",
+"billingState":"Telangana"
+},
+{
+"name":"chinna",
+"billingAddress":"bobbili",
+"billingCity":"vizianagaram",
+"billingCountry":"India",
+"billingPostalCode":"535568",
+"billingState":"Andhrapradesh"
+}
+]

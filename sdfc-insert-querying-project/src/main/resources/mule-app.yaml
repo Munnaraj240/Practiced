@@ -1,0 +1,10 @@
+http:
+  port: "8082"
+  basePath: "/sdfc"
+  path: "/accounts"
+  Contactspath: "/contacts"
+
+salesforce:
+  username: "puru123@invenio.com"
+  password: "Munnaraj@240"
+  securityToken: "DqX4wumLgskzoPBLR8SpKVaF"

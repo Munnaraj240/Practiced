@@ -1,0 +1,20 @@
+{
+  "configs": [
+    "creating-record-in-SalesforceAccount-object.xml" ,"Quering-Accounts-object-from-sdfc.xml"
+  ],
+  "secureProperties": ["securityToken", "password"],
+  "redeploymentEnabled": true,
+  "name": "secure-properties",
+  "minMuleVersion": "4.2.2",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedResources": []
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
