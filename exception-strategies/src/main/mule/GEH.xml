@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration doc:name="Configuration" doc:id="326066d0-f130-4596-b7ec-461fb1e9ad13" defaultErrorHandler-ref="GEHError_Handler" />
+	<error-handler name="GEHError_Handler" doc:id="f4e1f65c-f377-4b72-afaa-657ee8661874" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8351efd1-4937-499b-acb8-60fd5a52dbf2" type="HTTP:NOT_FOUND">
+			<ee:transform doc:name="Transform Message" doc:id="a479ce11-a3ee-41fa-9580-10f514c59021" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:error.description
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatusCode" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f4d8c713-dbe6-45ee-8629-6339ef274a1b" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="5a6f742a-c6d7-4902-8335-9b873f59a819" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:error.description
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatusCode" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>
