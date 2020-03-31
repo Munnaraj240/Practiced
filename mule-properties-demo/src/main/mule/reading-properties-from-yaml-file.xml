@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="d1d69166-2f30-42e8-b047-340acb3d4a76" >
+		<db:my-sql-connection host="${secure::db.host}" port="${secure::db.port}" user="${secure::db.username}" password="${secure::db.password}" database="${secure::db.database}" />
+	</db:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f8b23dd4-6235-4d73-816f-6a8fb873f9c0" >
+		<http:listener-connection host="0.0.0.0" port="${secure::http.port}" />
+	</http:listener-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="25ea734c-43a5-4162-afd2-8ff49565928e" file="${env}.yaml" key="${enc.key}" />
+	<flow name="reading-properties-from-yaml-fileFlow" doc:id="d8da3d25-8eec-45e9-be02-70e87f1b4db6" >
+		<http:listener doc:name="Listener" doc:id="95d87448-9156-41d8-a6f3-1540f3641724" path="${secure::http.path}" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5289d179-43a8-4cb1-98f5-adf97395963a" message="DB password is : ${secure::db.password}"/>
+		<db:select doc:name="Select" doc:id="1ef97e84-abf1-4ab8-bdf1-c25ecf64b080" config-ref="Database_Config1">
+			<db:sql >select * from country</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="f16557a0-edfc-4c45-8548-5d21bf6eb340" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger " doc:id="784e72ea-9dfb-421c-82c5-cabc035e1423" message="----------- data retrieved successfully from country table  -     -----"/>
+	</flow>
+</mule>
