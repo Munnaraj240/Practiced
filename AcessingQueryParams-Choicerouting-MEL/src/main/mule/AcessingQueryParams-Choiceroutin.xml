@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="e416c138-b07b-4ce9-9fd2-27540f09a908" file="mule-artifact.properties" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="709efdb7-833f-4d7d-a930-39f7c0bb82bc" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="75611ba2-b9c8-4c94-93f2-d8762037c965" >
+		<file:connection workingDir="C:\Users\Purushottam.Rao\Desktop\test-data" />
+	</file:config>
+	<flow name="sampleprojectFlow" doc:id="44a3964a-ff84-46f3-9994-96b3126e0247" >
+		<http:listener doc:name="greet1" doc:id="5db61c5a-51cb-4529-a948-d2cfc4cc9ec5" path="/greet1" config-ref="HTTP_Listener_config"/>
+		<set-payload value='#["Hello " ++ attributes.queryParams.username]' doc:name="Greetings " doc:id="e143e896-e819-4cd2-b698-94de31e0ef6d" />
+		<logger level="INFO" doc:name="Logger" doc:id="21af29aa-bffd-4f7a-9218-b557a0feebfb" />
+	</flow>
+	<flow name="sampleprojectFlow1" doc:id="23b50d90-17ff-4bf4-9b79-88a0aa758314" >
+		<http:listener doc:name="greet2" doc:id="d9ba6544-12b8-4347-a92f-44f6d45be8a5" path="/greet2" config-ref="HTTP_Listener_config"/>
+		<choice doc:name="is username query parameters ?" doc:id="29653494-2b11-455b-bade-202d5fd0e6cc" >
+			<when expression="#[attributes.queryParams.username == null]">
+				<set-payload value="No Username provided !" doc:name="Prepare response for invalid username" doc:id="9c566246-4f87-43c0-a303-5189066fd8e3" />
+			</when>
+			<otherwise>
+				<set-payload value='#["Hello " ++ attributes.queryParams.username]' doc:name="Prepare Greetings" doc:id="9e879b02-9b15-422e-aadd-f1f5617d6f55" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="AcessingQueryParams-ChoiceroutinFlow" doc:id="2a012883-ebe1-46e6-a67f-1205b70d24d6" >
+		<http:listener doc:name="greet3" doc:id="be5f77d3-8f35-4354-bf74-9513b3ab2b75" config-ref="HTTP_Listener_config" path="/greet3"/>
+		<set-variable value="#[attributes.queryParams.username]" doc:name="Set username variable" doc:id="1562e3f1-3de0-4ca6-890a-7a27f4a72b8b" variableName="username"/>
+		<file:write doc:name="Write" doc:id="b800612b-da0a-435e-b0ec-4f751d3e9f9a" path="output.txt" config-ref="File_Config">
+			<file:content ><![CDATA[#["username: " ++ vars.username ++ "Age: " ++ attributes.queryParams.age]]]></file:content>
+		</file:write>
+		<set-payload value='#["Welcome" ++ attributes.queryParams.username]' doc:name="Preparing Greetings" doc:id="5873f6d7-2544-4b66-a0af-d3086a0450bf" />
+	</flow>
+	<flow name="AcessingQueryParams-ChoiceroutinFlow1" doc:id="e7df3eb5-3b9c-4979-a23f-06f1463021bf" >
+		<http:listener doc:name="greet4" doc:id="ca66af3e-36e0-4469-91f3-b34c78d15a9a" config-ref="HTTP_Listener_config" path="/greet4"/>
+		<set-variable value='#[attributes.queryParams.username]' doc:name="set username variable" doc:id="717233ce-2ea8-440e-ab4f-6505007f366c" variableName="username"/>
+		<ee:transform doc:name="Transform Message" doc:id="5f3a2865-afcc-49f4-b808-c7080f871e6d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv header=false
+---
+[
+	{
+		username:vars.username,
+		age:attributes.queryParams.age
+	}
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="b57f1e22-0d89-4d6a-b327-934d0f66de1a" config-ref="File_Config" path="output.csv" >
+			<file:content ></file:content>
+		</file:write>
+		<set-payload value='#["Welcome " ++ attributes.queryParams.username]' doc:name="Preparing Greetings" doc:id="3c9893fd-0360-48d0-a939-16e6b7326585" />
+	</flow>
+</mule>

@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="json" format="json">
+      <types:shape format="weave" example="examples/test"><![CDATA[%dw 2.0
+
+type json = Array<{|  name: String,   age: Number {"typeId": "int"}|}> {"example": "[{\\\"name\\\":\\\"xyz\\\",\\\"age\\\":4},{\\\"name\\\":\\\"abc\\\",\\\"age\\\":10}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#44a3964a-ff84-46f3-9994-96b3126e0247">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e143e896-e819-4cd2-b698-94de31e0ef6d">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
