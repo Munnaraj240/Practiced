@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="dfff55cd-0d6a-4266-91f3-4a2bda8aa928" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="b821dd57-f2b5-4213-8f0b-088e6fa24a19" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="world" />
+	</db:config>
+	<flow name="database-operationsFlow" doc:id="713066d2-8ebd-4f50-91c0-db32d309bf33" >
+		<http:listener doc:name="insert-employee" doc:id="c664fed8-34b2-482f-9179-9e8a273101ea" config-ref="HTTP_Listener_config" path="/insert-employee" allowedMethods="POST"/>
+		<choice doc:name="Choice" doc:id="33d53f23-29f2-43a1-a444-5588026d7c7e" >
+			<when expression='#[attributes.headers."content-type" == "application/json"]'>
+				<logger level="INFO" doc:name="JSON-Entry - Logger" doc:id="f6f9668d-7e62-43c3-b367-d1d207741fbd" message="payload received"/>
+				<flow-ref doc:name="Flow Reference 1" doc:id="b93127ef-51de-4933-a74d-05f2b0d3c2d7" name="retrieve-by-content-type"/>
+				<ee:transform doc:name="Transform Message" doc:id="42eaa01a-5394-4530-9d73-d777ce585559">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="end-of-flow" doc:id="07a69542-0b4f-4a14-af5c-b5fed42bf513" message="Json content-type flow ended" />
+			</when>
+			<when expression='#[attributes.headers."content-type" == "application/xml"]'>
+				<logger level="INFO" doc:name="Entry - Logger" doc:id="b0a4bbd3-8a4a-4ec3-95a8-5c02861a30fb" message='payload recevied ' />
+				<flow-ref doc:name="XML Reference" doc:id="1403e043-dd8e-4498-9de3-5c7d9760bf1b" name="retrieve-by-content-type"/>
+				<logger level="INFO" doc:name="Logger" doc:id="e65ca8a0-a3ba-4082-b05d-b6afc6498201" message="xml data received"/>
+			
+</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="1bea0d89-45bb-4b6b-b0b3-769d6080a0c5" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="retrieve-by-content-type" doc:id="010e661d-bf35-4f1b-9aeb-50caf4b26e7b" >
+		<db:select doc:name="retrieving-data" doc:id="451fa8ac-e2bc-4dfe-ad38-56301292c92e" config-ref="Database_Config">
+			<db:sql >select * from employee</db:sql>
+		</db:select>
+	</flow>
+
+</mule>

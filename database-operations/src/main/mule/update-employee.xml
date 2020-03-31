@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="update-employeeFlow" doc:id="ff456af5-ee3e-497c-bdb8-e19d52893507" >
+		<http:listener doc:name="update-employee" doc:id="e6ad886d-4891-4791-8221-c726d74eec3d" config-ref="HTTP_Listener_config" path="/update-employee"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ef22905d-e944-428e-b7cf-08a1f17f26e6" message="Started updating Employee #[payload]"/>
+		<db:update doc:name="Update-employee" doc:id="b6aa506c-450b-4543-887c-e44af630b3e8" config-ref="Database_Config">
+			<db:sql >update employee set status = :status where id = :id</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"status":payload.employee.empstatus,
+	"id":payload.employee.empid
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Prepare Response" doc:id="56c2b9a4-3d08-4e14-847b-3ca025907227" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	reponse:
+	{
+		status:200,
+		message:"Success"
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Exit Log " doc:id="264a93b2-0db4-4361-8a84-abab0873d198" message="completed update employee and reponded payload is #[payload]"/>
+	</flow>
+</mule>
