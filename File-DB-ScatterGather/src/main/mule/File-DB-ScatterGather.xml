@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="fe36756b-db9f-44a3-a534-2aee92f40474" >
+		<file:connection workingDir="C:\Users\Purushottam.Rao\Desktop\test-data" />
+	</file:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="aafa8aac-2563-40db-891d-2a3ad3cca02f" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="1b2528a2-d108-4e7a-be01-e9f3c3062ff7" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="world" />
+	</db:config>
+	<flow name="testing-projectFlow" doc:id="47dd345b-bedd-42fe-bcdd-23a4795c4594" >
+		<http:listener doc:name="Listener" doc:id="40cf8e76-6817-4b8b-8d83-8d6a91f736ec" config-ref="HTTP_Listener_config" path="/">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<file:read doc:name="Read" doc:id="3cfe0a06-509d-4b3b-84e9-8922f2833078" config-ref="File_Config" path="E:\Purushottamrao\Workspaces\mule-practice-march11\File-DB-ScatterGather\src\test\resources\input\test-data.csv"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a357cc1d-c572-4375-9604-4eebc19a9c21" message="#[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="78709ce5-3eb6-44ab-8cad-34933ee76e50" maxConcurrency="2">
+			<route >
+				<logger level="INFO" doc:name="Route1" doc:id="2c75c8a0-2922-4c4f-8d35-7c97b2cba58c" message="------------ SctterGather component route1-------------------" />
+				<ee:transform doc:name="Extracting-Region-data" doc:id="d58b4aab-90e1-4a10-bf64-25041ffe9443">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json 
+---
+payload map  {
+	Region: $."Region",
+	Country: $."Country",
+	Item_Type: $."Item Type",
+	Sales_Channel: $."Sales Channel",
+	Order_Priority: $."Order Priority",
+	Order_Date: $."Order Date",
+	Order_ID: $."Order ID"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<flow-ref doc:name="Flow Reference" doc:id="f6acbb5b-713b-4f01-a057-0339e80bb640" name="testing-projectFlow1" />
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Route2" doc:id="1b41f3c4-34d4-4fa8-ba0e-9bb08729aa79" message="------------ SctterGather component route2-------------------"/>
+				<ee:transform doc:name="Extracting-sales-revenue-details" doc:id="ab8077b0-60db-43d9-962b-910df381a2c4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map  {
+	Order_ID: $."Order ID",
+	Ship_Date: $."Ship Date",
+	Units_Sold: $."Units Sold",
+	Unit_Price: $."Unit Price",
+	Unit_Cost: $."Unit Cost",
+	Total_Revenue: $."Total Revenue",
+	Total_Cost: $."Total Cost",
+	Total_Profit: $."Total Profit"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference" doc:id="2ca25576-8293-4669-b925-831bec781499" name="testing-projectFlow2"/>
+			</route>
+		</scatter-gather>
+<!-- 		<foreach doc:name="For Each" doc:id="f03d8361-323e-4679-8f97-7948656bcf7f" >
+			<logger level="INFO" doc:name="Logger" doc:id="ab6293c9-bd6f-4529-96d4-3c02a9f4adc6" message="#[payload]"/>
+
+				<db:insert doc:name="Insert" doc:id="42316654-dd9c-4d42-8bfe-4327c3b49e5a" config-ref="Database_Config">
+				<db:sql>insert into sales_region_tb(Region,Country,Item_Type,Sales_Channel,Order_Priority,Order_Date,Order_ID)values(:Region,:Country,:Item_Type,:Sales_Channel,:Order_Priority,:Order_Date,:Order_ID)</db:sql>
+				<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+			
+			<logger level="INFO" doc:name="Logger" doc:id="48a878c5-c061-46f6-b361-4b7627c22bc0" message="#[payload]"/>
+		</foreach> -->
+		<ee:transform doc:name="Transform Message" doc:id="f2b29cdc-a5a6-49ab-b121-c7b5ed3a9082" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a84aad06-4ef7-4d24-a0da-f35fb9021ec4" message="flow completed"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ded3c77b-59d2-47fa-bdba-3f693d7a6be5" type="DB:QUERY_EXECUTION">
+				<ee:transform doc:name="Transform Message" doc:id="fcc486ff-12b5-4bd0-9596-018a63e6f433">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	//message:error.description default '' ++ " while inserting Order_Id data in database"
+	 message:error.errorMessage.payload
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	
+	</flow>
+	<sub-flow name="testing-projectFlow1" doc:id="8e02a826-6415-4dbc-91ed-0c2ed0cf804b">
+		<logger level="INFO" doc:name="Logger" doc:id="a15e9ccb-983f-4bde-a7d5-0bc5061d41a8" message="#[payload]"/>
+		<foreach doc:name="For Each" doc:id="a2cec518-9948-4f81-b7e5-222cfa00cac9" >
+			
+				<db:insert doc:name="Inserting_region_data" doc:id="c2691d3c-6e33-4ac3-9d7d-32b70f3ed43f" config-ref="Database_Config">
+				<db:sql>insert into sales_region_tb(Region,Country,Item_Type,Sales_Channel,Order_Priority,Order_Date,Order_ID)values(:Region,:Country,:Item_Type,:Sales_Channel,:Order_Priority,:Order_Date,:Order_ID)</db:sql>
+				<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+			
+
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="bf144010-c7d1-4af0-9e95-a5059ed5e780" message="------------ region table data got updated ---------"/>
+		
+</sub-flow>
+	<sub-flow name="testing-projectFlow2" doc:id="642694b0-2b0a-46bf-a20f-21b477b09457" >
+		<logger level="INFO" doc:name="Logger" doc:id="7e7ad549-d9a0-406c-8efc-ace486ee604b" message="#[payload]"/>
+		<foreach doc:name="For Each" doc:id="195e5fec-15f2-4ecd-823a-ce2a4e1e5d05" >
+			<db:insert doc:name="Inserting_sales_data" doc:id="1d2b3b90-8826-4830-b4b5-961cca450a3d" config-ref="Database_Config">
+			<db:sql>insert into sale_revenue_details(Order_ID,Ship_Date,Units_Sold,Unit_Price,Unit_Cost,Total_Revenue,Total_Cost,Total_Profit)values(:Order_ID,:Ship_Date,:Units_Sold,:Unit_Price,:Unit_Cost,:Total_Revenue,:Total_Cost,:Total_Profit)</db:sql>
+			<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="09ad394b-af48-4597-8b0c-5851d589564f" message="-------   sales order details got updated   -----"/>
+	</sub-flow>
+</mule>

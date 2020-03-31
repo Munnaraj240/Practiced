@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="File-DB-WithoutUsingScttergatherFlow" doc:id="505ec470-1aa1-408b-8e0c-643f259b0662" >
+		<http:listener doc:name="Listener" doc:id="9f5c03a6-6fe2-4233-b205-651afb471f6a" config-ref="HTTP_Listener_config" path="/fdw"/>
+		<file:read doc:name="Reading a file from resources folder" doc:id="eba8d12d-29ff-4de6-bfbb-3f9fea35fa09" config-ref="File_Config" path="E:\Purushottamrao\Workspaces\mule-practice-march11\File-DB-ScatterGather\src\test\resources\input\test-data.csv" />
+		<logger level="INFO" doc:name="Logging the payload received from the file" doc:id="c5aaaff5-415e-4cc1-89d4-93b4b6e25181" message="#[payload]" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="2ba49da5-c864-4d24-a354-43066475c0c0" >
+			<route >
+				<logger level="INFO" doc:name="first routing " doc:id="7354b720-a373-432f-b724-120986f08f86" message="------------ SctterGather component route1-------------------" />
+				<ee:transform doc:name="Extracting-Region-data" doc:id="493e8e98-60eb-43eb-8c55-091a58522870">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json 
+---
+payload map  {
+	Region: $."Region",
+	Country: $."Country",
+	Item_Type: $."Item Type",
+	Sales_Channel: $."Sales Channel",
+	Order_Priority: $."Order Priority",
+	Order_Date: $."Order Date",
+	Order_ID: $."Order ID"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Second routing " doc:id="695cfd42-220d-4ae7-8e7e-8a168c67c7fc" message="------------ SctterGather component route2-------------------" />
+				<ee:transform doc:name="Extracting-sales-revenue-details" doc:id="fead5875-93f8-4fa9-8937-545abbc39c5c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map  {
+	Order_ID: $."Order ID",
+	Ship_Date: $."Ship Date",
+	Units_Sold: $."Units Sold",
+	Unit_Price: $."Unit Price",
+	Unit_Cost: $."Unit Cost",
+	Total_Revenue: $."Total Revenue",
+	Total_Cost: $."Total Cost",
+	Total_Profit: $."Total Profit"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="scattergather-output-log" doc:id="206a2014-97c6-4556-b133-2726f06b229e" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="90ac1743-d3f8-4bf5-bd10-19066e2f6c0f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="salesVar" ><![CDATA[%dw 2.0
+output application/json
+---
+payload."0".payload[0]]]></ee:set-variable>
+				<ee:set-variable variableName="RegionVar" ><![CDATA[%dw 2.0
+output application/json
+---
+payload."1".payload[0]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="d47f0d1f-db06-44a6-8e92-fd5981bbb66a" name="inserting-data-into-sales_region_tb" targetValue="#[vars]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="1909d646-e120-4ca0-92a9-685e71ee40a2" name="inserting-data-sale_revenue_details-table" targetValue="#[vars]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ffb2a873-597e-4683-be32-420e1606f920" message="original flow execution completed "/>
+	</flow>
+	<sub-flow name="inserting-data-into-sales_region_tb" doc:id="e2004665-bbc8-4741-9430-c8ac28ae186c" >
+		<db:insert doc:name="Insert-data" doc:id="4459880a-d5a7-476a-b52e-eb0444a52b4d" config-ref="Database_Config" >
+			<db:sql >insert into sales_region_tb(Region,Country,Item_Type,Sales_Channel,Order_Priority,Order_Date,Order_ID)values(:Region,:Country,:Item_Type,:Sales_Channel,:Order_Priority,:Order_Date,:Order_ID)</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"Region":vars.salesVar.Region,
+	"Country":vars.salesVar.Country,
+	"Item_Type":vars.salesVar.Item_Type,
+	"Sales_Channel":vars.salesVar.Sales_Channel,
+	"Order_Priority":vars.salesVar.Order_Priority,
+	"Order_Date":vars.salesVar.Order_Date,
+	"Order_ID":vars.salesVar.Order_ID
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Inserted-data" doc:id="962b387e-c1e8-4004-8559-69813e5621b1" message="data-successfully-inserted in sales_region_table"/>
+	</sub-flow>
+	<sub-flow name="inserting-data-sale_revenue_details-table" doc:id="d141adf6-089f-4f98-9fdf-ec14dfe381fc" >
+		<db:insert doc:name="Insert-revenue-data" doc:id="ade52ccc-3ab8-4aa5-9e63-af909be028a6" config-ref="Database_Config" >
+			<db:sql >insert into sale_revenue_details(Order_ID,Ship_Date,Units_Sold,Unit_Price,Unit_Cost,Total_Revenue,Total_Cost,Total_Profit)values(:Order_ID,:Ship_Date,:Units_Sold,:Unit_Price,:Unit_Cost,:Total_Revenue,:Total_Cost,:Total_Profit)</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"Order_ID":vars.RegionVar.Order_ID,
+	"Ship_Date":vars.RegionVar.Ship_Date,
+	"Units_Sold":vars.RegionVar.Units_Sold,
+	"Unit_Price":vars.RegionVar.Unit_Price,
+	"Unit_Cost":vars.RegionVar.Unit_Cost,
+	"Total_Revenue":vars.RegionVar.Total_Revenue,
+	"Total_Cost":vars.RegionVar.Total_Cost,
+	"Total_Profit":vars.RegionVar.Total_Profit
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="bf9fa249-da65-4483-bda7-292adedc309f" message="inserted-revenue-data--"/>
+	</sub-flow>
+</mule>

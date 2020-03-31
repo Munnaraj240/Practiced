@@ -1,0 +1,19 @@
+{
+  "sampleData": {
+    "d58b4aab-90e1-4a10-bf64-25041ffe9443": {
+      "payload": "sample_data/list_unknown.csv"
+    },
+    "ab8077b0-60db-43d9-962b-910df381a2c4": {
+      "payload": "sample_data/list_unknown_1.csv"
+    },
+    "fead5875-93f8-4fa9-8937-545abbc39c5c": {
+      "payload": "sample_data/defaultbinarytype.dwl"
+    },
+    "2e6238d1-e8d8-42ec-b4b7-b37c79c85c40": {
+      "payload": "sample_data/object_1.dwl"
+    },
+    "90ac1743-d3f8-4bf5-bd10-19066e2f6c0f": {
+      "payload": "sample_data/object_2.dwl"
+    }
+  }
+}
