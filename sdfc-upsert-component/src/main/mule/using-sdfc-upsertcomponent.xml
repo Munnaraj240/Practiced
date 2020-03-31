@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="95350802-d401-4531-a8af-833c508a16ae" basePath="/sdfc" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="da1870a6-b0ad-43dc-b514-8fa7ba4f1110" >
+		<salesforce:cached-basic-connection username="puru123@invenio.com" password="Munnaraj@240" securityToken="DqX4wumLgskzoPBLR8SpKVaF"/>
+	</salesforce:sfdc-config>
+	<flow name="using-sdfc-upsertcomponentFlow" doc:id="2dc722bc-bbfa-43e2-8aeb-6f7af45b50b2" >
+		<http:listener doc:name="Listener" doc:id="3dd766a1-57d0-4980-95c2-a46d3d3f6cd6" config-ref="HTTP_Listener_config" path="/contacts" allowedMethods="PUT"/>
+		<ee:transform doc:name="Transform Message" doc:id="c4ce70b7-b8d8-429a-80f2-bf282d786e9d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map(items,index)->
+{
+	FirstName:items.firstName,
+	LastName:items.lastName,
+	Email:items.email,
+	Phone:items.mobile
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Upsert" doc:id="52fa1cad-01da-4c3a-9ce3-3e22fc285b9f" config-ref="Salesforce_Config" externalIdFieldName="Email" type="Contact"/>
+		<ee:transform doc:name="Transform Message" doc:id="60f41136-1561-477a-9c2d-20bd9688837f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
