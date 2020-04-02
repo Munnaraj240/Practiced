@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="world-demo-api-test-suite.xml" />
+	<munit:test name="world-demo-api-test-suite-world-demo-apiFlowTest-attributes-test" doc:id="dc4fbc0b-a1bc-44cb-bad6-82ac7b3b5938" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="ea4b7c96-1bab-49e1-a71e-dae7f38a7832" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="3eadba08-3b37-450f-bdcd-54d8830bd582" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="testing attributes values " doc:id="302b1d1c-59ee-41bb-a95f-1693ff6ad140" expression="#[payload]" is="#[MunitTools::notNullValue()]" message="payload is null"/>
+		</munit:validation>
+	</munit:test>
+	<flow name="world-demo-api-test-suiteFlow" doc:id="ac6fd7fd-6bca-4ddf-8255-1f415eef642f" >
+		<munit:set-event doc:name="Set Event" doc:id="4eb79e8d-7683-45e7-a840-1408149468ca">
+				<munit:attributes value="#[{uriParams:{region:'Asia',city:'Kolkata'}}]" />
+			</munit:set-event>
+	</flow>
+	<munit:test name='world-demo-api-test-suite-world-demo-apiFlowTest-"MediaType"-test' doc:id="dde3364f-20d4-43c0-b3db-b87f8cfbfc49" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="e3b3a57e-09d2-48f4-a258-d2003e4b673b" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="4f112195-1727-448d-bbee-17964abe04a6" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="73676bce-3c3d-4349-ae26-484d904ed9c9" is="#[MunitTools::withMediaType('application/json')]" expression="#[payload]" message="payload recevied with the content type application/json"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name='world-demo-api-test-suite-world-demo-apiFlowTest-"attributes-MediaType"-test' doc:id="339b8a8f-991e-4b4d-951f-1ee1b49b2b8e" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="802db026-a15f-49e2-9d7b-cd9a2283c1fc" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="65726924-de0b-4a56-b708-7ebe62bee22f" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="ad9f6add-a94d-4973-b4c5-271e813714a0" expression="#[payload]" is="#[MunitTools::both(MunitTools::notNullValue(),MunitTools::withMediaType('application/json'))]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name='world-demo-api-test-suite-world-demo-apiFlowTest-either-"attributes-MediaType"-test' doc:id="777adf58-5815-4e7c-890b-ef7e24d8571f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="a80938ff-5a95-4c31-9bb5-105cc90e2c98" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="a1fec0ea-b89a-44fc-9743-a994dca35019" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="db6690f0-7f97-4542-bab5-c2178b4066f6" expression="#[payload]" is="#[MunitTools::either(MunitTools::notNullValue(),MunitTools::withMediaType('application/json'))]" message="----- test case failed becasue either of attributes  and Mediatype are not recevied --------------------"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="world-demo-api-test-suite-world-demo-apiFlowTest-allOf-usecase" doc:id="d728611d-da81-431a-bd1b-63e5d43eb865" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="13215ccf-2f63-4975-a4b0-41e87e52d115" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="ac80688d-b37c-4521-bfe6-21159bd11ccc" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="e146a70b-c0db-4d10-9e7b-a55f77ff8c62" expression="#[payload]" is="#[MunitTools::allOf([MunitTools::notNullValue(),MunitTools::withMediaType('application/json'),MunitTools::withEncoding('UTF-8')])]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="world-demo-api-test-suite-world-demo-apiFlowTest-anyOf-usecase" doc:id="e4c19eb3-7ac1-4975-8a38-52286964f258" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="1a259ca3-65e7-4cd2-a9d7-ece654d4e8cb" name="world-demo-api-test-suiteFlow"/>
+			<flow-ref doc:name="Flow-ref to world-demo-apiFlow" doc:id="f23c2d02-09ab-403b-b757-7bd5bbcd0a49" name="world-demo-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="f6f50c10-1cf2-4d94-a1e5-ec46d50441bc" expression="#[payload]" is="#[MunitTools::anyOf([MunitTools::notNullValue(),MunitTools::withMediaType('application/json'),MunitTools::withEncoding('UTF-8')])]"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>
